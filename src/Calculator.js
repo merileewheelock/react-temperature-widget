@@ -2,23 +2,53 @@ import React, { Component } from 'react';
 import TemperatureInput from './TemperatureInput';
 import BoilingVerdict from './BoilingVerdict';
 
-function toCelsius(fahrenheit) {
-	return (fahrenheit - 32) * 5 / 9;
+function toCelsius(value, scale) {
+	if (scale == 'f'){
+		return ((value - 32) * 5 / 9);
+	}else if (scale == 'k'){
+		return (value - 273.15);
+	}
 }
 
-function toFahrenheit(celsius) {
-	return (celsius * 9 / 5) + 32;
+function toFahrenheit(value, scale) {
+	if (scale == 'c'){
+		return (value * 9 / 5) + 32;
+	}else if (scale == 'k'){
+		return ((value * 9 / 5) - 459.67);
+	}
 }
 
-function tryConvert(temperature, convert) {
+function toKelvin(value, scale) {
+	if (scale == 'c') {
+		return (value + 273.15)
+	}else if (scale == 'f'){
+		return ((value + 459.67) * (5 / 9))
+	}
+}
+
+function tryConvert(temperature, from, to) {
 	const input = parseFloat(temperature);
 	if (Number.isNaN(input)) {
 		return 'Not a number';
 	}else{
-		if(convert == 'c'){
-			return toFahrenheit(input);
-		}else{
-			return toCelsius(input);
+		if(from == 'c'){
+			if (to == 'f'){
+				return toFahrenheit(input, from);
+			}else if (to == 'k'){
+				return toKelvin(input, from);
+			}
+		}else if (from == 'f'){
+			if (to == 'c'){
+				return toCelsius(input, from);
+			}else if (to == 'k'){
+				return toKelvin(input, from);
+			}
+		}else if (from == 'k'){
+			if (to == 'f'){
+				return toFahrenheit(input, from);
+			}else if (to == 'c'){
+				return toCelsius(input, from);
+			}
 		}
 	}
 	// const output = convert(input);
@@ -34,7 +64,8 @@ class Calculator extends Component {
 			scale: 'c'
 		}
 		this.handleCChange = this.handleCChange.bind(this);
-		this.handleFChange = this.handleFChange.bind(this)
+		this.handleFChange = this.handleFChange.bind(this);
+		this.handleKChange = this.handleKChange.bind(this)
 	}
 
 	handleCChange(value){
@@ -51,6 +82,12 @@ class Calculator extends Component {
 		})
 	}
 
+	handleKChange(value){
+		this.setState({
+			value: value,
+			scale: 'k'
+		})
+	}
 
 
 	render(){
@@ -59,10 +96,16 @@ class Calculator extends Component {
 
 		if(scale == "c"){
 			var cTemp = value;
-			var fTemp = tryConvert(value, scale)
-		}else{
+			var fTemp = tryConvert(value, scale, 'f')
+			var kTemp = tryConvert(value, scale, 'k')
+		}else if(scale == "f"){
 			var fTemp = value;
-			var cTemp = tryConvert(value, scale)
+			var cTemp = tryConvert(value, scale, 'c')
+			var kTemp = tryConvert(value, scale, 'k')
+		}else{
+			var kTemp = value;
+			var cTemp = tryConvert(value, scale, 'c')
+			var fTemp = tryConvert(value, scale, 'f')
 		}
 
 
@@ -75,6 +118,8 @@ class Calculator extends Component {
 				<BoilingVerdict scale='c' value={cTemp} />
 				<TemperatureInput scale='f' value={fTemp} onChange={this.handleFChange} />
 				<BoilingVerdict scale='f' value={fTemp}/>
+				<TemperatureInput scale='k' value={kTemp} onChange={this.handleKChange} />
+				<BoilingVerdict scale='k' value={kTemp}/>
 			</div>
 		)
 	}
